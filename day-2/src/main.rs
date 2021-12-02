@@ -67,36 +67,20 @@ impl Position {
     }
 
     fn process_position(&mut self, instruction: &Instruction) {
-        *self = match self.position_type {
+        match self.position_type {
             PositionType::Naive => match instruction {
-                ("forward", x) => Position {
-                    horizontal: self.horizontal + x,
-                    ..*self
-                },
-                ("down", x) => Position {
-                    depth: self.depth + x,
-                    ..*self
-                },
-                ("up", x) => Position {
-                    depth: self.depth - x,
-                    ..*self
-                },
+                ("forward", x) => self.horizontal += x,
+                ("down", x) => self.depth += x,
+                ("up", x) => self.depth -= x,
                 _ => unreachable!(),
             },
             PositionType::Aim => match instruction {
-                ("forward", x) => Position {
-                    horizontal: self.horizontal + x,
-                    depth: self.depth + (self.aim * x),
-                    ..*self
-                },
-                ("down", x) => Position {
-                    aim: self.aim + x,
-                    ..*self
-                },
-                ("up", x) => Position {
-                    aim: self.aim - x,
-                    ..*self
-                },
+                ("forward", x) => {
+                    self.horizontal += x;
+                    self.depth += self.aim * x;
+                }
+                ("down", x) => self.aim += x,
+                ("up", x) => self.aim -= x,
                 _ => unreachable!(),
             },
         };
