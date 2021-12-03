@@ -59,10 +59,8 @@ impl Position {
 
     fn new_aim() -> Position {
         Position {
-            horizontal: 0,
-            depth: 0,
-            aim: 0,
             position_type: PositionType::Aim,
+            ..Position::new()
         }
     }
 
