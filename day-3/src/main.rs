@@ -11,8 +11,8 @@ fn main() {
 
     println!("Power consumption = {}", gamma * epsilon);
 
-    let oxygen = str_to_i32(most_common_filtered(&input));
-    let co2 = str_to_i32(least_common_filtered(&input));
+    let oxygen = str_to_i32(common_filtered(&input, true));
+    let co2 = str_to_i32(common_filtered(&input, false));
 
     println!("Life supply = {}", oxygen * co2);
 }
@@ -53,40 +53,20 @@ fn get_max_min_at_position(inputs: &Vec<&str>, pos: usize) -> MaxMin {
     generate_bin_strings(vec![total])
 }
 
-fn most_common_filtered(input: &str) -> String {
+fn common_filtered(input: &str, max: bool) -> String {
     let mut inputs: Vec<&str> = input.lines().collect();
 
     let mut counter = 0;
 
     while inputs.len() > 1 {
-        let most_common = get_max_min_at_position(&inputs, counter).0;
+        let common = match max {
+            true => get_max_min_at_position(&inputs, counter).0,
+            false => get_max_min_at_position(&inputs, counter).1,
+        };
 
         inputs = inputs
             .into_iter()
-            .filter(|input| {
-                input.chars().nth(counter).unwrap() == most_common.chars().nth(0).unwrap()
-            })
-            .collect();
-
-        counter += 1;
-    }
-
-    String::from(inputs[0])
-}
-
-fn least_common_filtered(input: &str) -> String {
-    let mut inputs: Vec<&str> = input.lines().collect();
-
-    let mut counter = 0;
-
-    while inputs.len() > 1 {
-        let most_common = get_max_min_at_position(&inputs, counter).1;
-
-        inputs = inputs
-            .into_iter()
-            .filter(|input| {
-                input.chars().nth(counter).unwrap() == most_common.chars().nth(0).unwrap()
-            })
+            .filter(|input| input.chars().nth(counter).unwrap() == common.chars().nth(0).unwrap())
             .collect();
 
         counter += 1;
@@ -158,11 +138,11 @@ mod tests {
 
     #[test]
     fn most_common_filtered_test() {
-        assert_eq!(most_common_filtered(example()), String::from("10111"));
+        assert_eq!(common_filtered(example(), true), String::from("10111"));
     }
 
     #[test]
     fn least_common_filtered_test() {
-        assert_eq!(least_common_filtered(example()), String::from("01010"));
+        assert_eq!(common_filtered(example(), false), String::from("01010"));
     }
 }
