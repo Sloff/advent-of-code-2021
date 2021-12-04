@@ -1,10 +1,13 @@
 use std::fs;
 
+type MaxMin = (String, String);
+
 fn main() {
     let input = fs::read_to_string("day-3/input.txt").unwrap();
 
-    let gamma = str_to_i32(most_common(&input));
-    let epsilon = str_to_i32(least_common(&input));
+    let (gamma, epsilon) = get_gamma_and_epsilon(&input);
+    let gamma = str_to_i32(gamma);
+    let epsilon = str_to_i32(epsilon);
 
     println!("Power consumption = {}", gamma * epsilon);
 
@@ -14,7 +17,7 @@ fn main() {
     println!("Life supply = {}", oxygen * co2);
 }
 
-fn most_common(input: &str) -> String {
+fn get_gamma_and_epsilon(input: &str) -> MaxMin {
     let mut occurrences = Vec::new();
     input.lines().for_each(|line| {
         line.chars().enumerate().for_each(|(i, c)| {
@@ -31,10 +34,10 @@ fn most_common(input: &str) -> String {
         })
     });
 
-    generate_bin_str(occurrences)
+    generate_bin_strings(occurrences)
 }
 
-fn most_common_at_position(inputs: &Vec<&str>, pos: usize) -> String {
+fn get_max_min_at_position(inputs: &Vec<&str>, pos: usize) -> MaxMin {
     let total = inputs.iter().fold(0, |mut total, line| {
         let c = line.chars().skip(pos).take(1).last().unwrap();
         let x = match c {
@@ -47,7 +50,7 @@ fn most_common_at_position(inputs: &Vec<&str>, pos: usize) -> String {
         total
     });
 
-    generate_bin_str(vec![total])
+    generate_bin_strings(vec![total])
 }
 
 fn most_common_filtered(input: &str) -> String {
@@ -56,7 +59,7 @@ fn most_common_filtered(input: &str) -> String {
     let mut counter = 0;
 
     while inputs.len() > 1 {
-        let most_common = most_common_at_position(&inputs, counter);
+        let most_common = get_max_min_at_position(&inputs, counter).0;
 
         inputs = inputs
             .into_iter()
@@ -69,14 +72,6 @@ fn most_common_filtered(input: &str) -> String {
     }
 
     String::from(inputs[0])
-}
-
-fn least_common_at_position(inputs: &Vec<&str>, pos: usize) -> String {
-    invert(most_common_at_position(&inputs, pos))
-}
-
-fn least_common(input: &str) -> String {
-    invert(most_common(input))
 }
 
 fn least_common_filtered(input: &str) -> String {
@@ -85,7 +80,7 @@ fn least_common_filtered(input: &str) -> String {
     let mut counter = 0;
 
     while inputs.len() > 1 {
-        let most_common = least_common_at_position(&inputs, counter);
+        let most_common = get_max_min_at_position(&inputs, counter).1;
 
         inputs = inputs
             .into_iter()
@@ -100,29 +95,21 @@ fn least_common_filtered(input: &str) -> String {
     String::from(inputs[0])
 }
 
-fn invert(input: String) -> String {
-    input.chars().fold(String::new(), |mut result, c| {
-        match c {
-            '0' => result.push('1'),
-            '1' => result.push('0'),
-            _ => unreachable!(),
-        };
-        result
-    })
-}
-
-fn generate_bin_str(occurrences: Vec<i32>) -> String {
-    occurrences
-        .iter()
-        .fold(String::new(), |mut result, occurrence| {
+fn generate_bin_strings(occurrences: Vec<i32>) -> MaxMin {
+    occurrences.iter().fold(
+        (String::new(), String::new()),
+        |(mut most_common, mut least_common), occurrence| {
             if *occurrence >= 0 {
-                result.push('1')
+                most_common.push('1');
+                least_common.push('0');
             } else {
-                result.push('0')
+                most_common.push('0');
+                least_common.push('1');
             }
 
-            result
-        })
+            (most_common, least_common)
+        },
+    )
 }
 
 fn str_to_i32(bin_string: String) -> i32 {
@@ -139,26 +126,24 @@ mod tests {
 
     #[test]
     fn most_common_test() {
-        assert_eq!(most_common(example()), String::from("10110"));
+        assert_eq!(get_gamma_and_epsilon(example()).0, String::from("10110"));
     }
 
     #[test]
     fn least_common_test() {
-        assert_eq!(least_common(example()), String::from("01001"));
+        assert_eq!(get_gamma_and_epsilon(example()).1, String::from("01001"));
     }
 
     #[test]
     fn example_1() {
-        assert_eq!(
-            str_to_i32(most_common(example())) * str_to_i32(least_common(example())),
-            198
-        );
+        let (gamma, epsilon) = get_gamma_and_epsilon(example());
+        assert_eq!(str_to_i32(gamma) * str_to_i32(epsilon), 198);
     }
 
     #[test]
     fn most_common_at_position_test() {
         assert_eq!(
-            most_common_at_position(&example().lines().collect(), 0),
+            get_max_min_at_position(&example().lines().collect(), 0).0,
             String::from("1")
         );
     }
@@ -166,7 +151,7 @@ mod tests {
     #[test]
     fn least_common_at_position_test() {
         assert_eq!(
-            least_common_at_position(&example().lines().collect(), 0),
+            get_max_min_at_position(&example().lines().collect(), 0).1,
             String::from("0")
         );
     }
