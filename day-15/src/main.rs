@@ -75,8 +75,6 @@ fn get_shortest_path(grid: &mut Grid) -> usize {
             }
         });
 
-        println!("Progress: {}", grid.len());
-
         current_node_key = *grid.into_iter().min_by_key(|(_, val)| val.1).unwrap().0
     }
 
